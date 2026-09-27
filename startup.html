@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecRoom iOS</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: white;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow-x: hidden;
+    }
+
+    body {
+      color: #222;
+    }
+
+    /* =========================
+       STARTUP
+    ========================= */
+
+    #startup {
+      position: fixed;
+      inset: 0;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+
+    #startup img {
+      width: 180px;
+      height: auto;
+    }
+
+    /* =========================
+       APP
+    ========================= */
+
+    #app {
+      display: none;
+      min-height: 100vh;
+      background: white;
+      padding-bottom: 65px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* =========================
+       TOP BAR
+    ========================= */
+
+    .topbar {
+      height: 58px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: white;
+    }
+
+    .top-logo {
+      width: 160px;
+      height: auto;
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 18px;
+      width: 23px;
+      height: 23px;
+      border: 3px solid #111;
+      border-radius: 50%;
+    }
+
+    .search-icon::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 3px;
+      background: #111;
+      right: -8px;
+      bottom: -5px;
+      transform: rotate(45deg);
+      border-radius: 3px;
+    }
+
+    /* =========================
+       HOME
+    ========================= */
+
+    .content {
+      padding: 0 15px 20px;
+    }
+
+    .section {
+      margin-top: 17px;
+    }
+
+    .section-title {
+      font-size: 21px;
+      font-weight: 700;
+      margin: 0 0 9px;
+    }
+
+    .cards {
+      display: flex;
+      gap: 9px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .cards::-webkit-scrollbar {
+      display: none;
+    }
+
+    .card {
+      flex: 0 0 125px;
+      min-width: 125px;
+    }
+
+    .card-image {
+      width: 125px;
+      height: 88px;
+      object-fit: cover;
+      border-radius: 9px;
+      display: block;
+      background: #ddd;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #555;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 3px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 8px;
+      margin-top: 2px;
+      color: #555;
+      font-size: 11px;
+    }
+
+    /* =========================
+       MESSAGES
+    ========================= */
+
+    .messages-header {
+      padding: 15px 15px 8px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .message-search {
+      margin: 0 15px 12px;
+      height: 42px;
+      border-radius: 21px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      color: #888;
+      font-size: 17px;
+    }
+
+    .small-search {
+      width: 17px;
+      height: 17px;
+      border: 2px solid #777;
+      border-radius: 50%;
+      margin-right: 10px;
+      position: relative;
+    }
+
+    .small-search::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 2px;
+      background: #777;
+      right: -5px;
+      bottom: -3px;
+      transform: rotate(45deg);
+    }
+
+    .message-person {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      padding: 7px 18px;
+      cursor: pointer;
+    }
+
+    .message-person:active {
+      background: #eee;
+    }
+
+    .message-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #ddd;
+      margin-right: 14px;
+    }
+
+    .message-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-name {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .message-preview {
+      font-size: 14px;
+      color: #777;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .message-time {
+      font-size: 12px;
+      color: #999;
+      align-self: flex-start;
+      margin-top: 12px;
+    }
+
+    .online-dot {
+      width: 11px;
+      height: 11px;
+      background: #36d34a;
+      border: 2px solid white;
+      border-radius: 50%;
+      position: absolute;
+      margin-left: 42px;
+      margin-top: 40px;
+    }
+
+    /* =========================
+       DM
+    ========================= */
+
+    .dm-header {
+      height: 58px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: 21px;
+      font-weight: 700;
+    }
+
+    .back-button {
+      position: absolute;
+      left: 15px;
+      font-size: 32px;
+      color: #777;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .dm-messages {
+      padding: 15px 14px 90px;
+      min-height: calc(100vh - 123px);
+    }
+
+    .dm-row {
+      display: flex;
+      margin-bottom: 14px;
+      align-items: flex-end;
+    }
+
+    .dm-row.me {
+      justify-content: flex-end;
+    }
+
+    .dm-avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 8px;
+    }
+
+    .bubble {
+      max-width: 72%;
+      padding: 10px 13px;
+      background: #e5e5e8;
+      border-radius: 15px;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .dm-row.me .bubble {
+      background: #ff6500;
+      color: white;
+    }
+
+    .bubble-time {
+      display: block;
+      font-size: 10px;
+      margin-top: 3px;
+      opacity: 0.55;
+    }
+
+    .dm-input-area {
+      position: fixed;
+      bottom: 65px;
+      left: 0;
+      right: 0;
+      height: 58px;
+      background: white;
+      border-top: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      padding: 7px 10px;
+    }
+
+    .dm-input-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 8px;
+    }
+
+    #messageInput {
+      flex: 1;
+      height: 40px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 0 13px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #sendButton {
+      border: 0;
+      background: transparent;
+      color: #c87535;
+      font-size: 15px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    /* =========================
+       OTHER SCREENS
+    ========================= */
+
+    .placeholder-screen {
+      padding: 25px 15px;
+      text-align: center;
+    }
+
+    .placeholder-screen h1 {
+      font-size: 27px;
+    }
+
+    .profile-big {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* =========================
+       PLAY BUTTON
+    ========================= */
+
+    .play-button {
+      width: 65px;
+      height: 65px;
+      background: #ff5a24;
+      border-radius: 11px;
+      margin-top: -28px;
+      box-shadow: 0 3px 8px rgba(0,0,0,.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .play-triangle {
+      width: 0;
+      height: 0;
+      border-top: 9px solid transparent;
+      border-bottom: 9px solid transparent;
+      border-left: 14px solid white;
+      margin-left: 3px;
+    }
+
+    .play-text {
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    /* =========================
+       BOTTOM NAV
+    ========================= */
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 65px;
+      background: white;
+      border-top: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 500;
+    }
+
+    .nav-item {
+      width: 55px;
+      text-align: center;
+      color: #777;
+      cursor: pointer;
+    }
+
+    .nav-icon {
+      font-size: 27px;
+      line-height: 30px;
+    }
+
+    .profile-image {
+      width: 31px;
+      height: 31px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* ==================================================
+       FULL SCREEN ROOM LOADING SCREEN
+    ================================================== */
+
+    #roomLoading {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+
+      background-image: url("RecRoombackgroundlaunchee.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+
+      z-index: 999999;
+
+      display: none;
+      overflow: hidden;
+    }
+
+    #roomLoading.show {
+      display: block;
+    }
+
+    /* SIDEWAYS LOGO */
+
+    .loading-logo {
+      position: absolute;
+
+      width: min(48vw, 420px);
+      height: auto;
+
+      left: 50%;
+      top: 50%;
+
+      transform: translate(-50%, -50%) rotate(90deg);
+
+      z-index: 3;
+    }
+
+    /* VERTICAL LOADING BAR */
+
+    .loading-bar {
+      position: absolute;
+
+      left: 30%;
+      top: 50%;
+
+      width: 30px;
+      height: 55vh;
+
+      transform: translate(-50%, -50%);
+
+      background: white;
+
+      border: 3px solid white;
+      border-radius: 10px;
+
+      overflow: hidden;
+
+      z-index: 4;
+    }
+
+    /* ORANGE FILL */
+
+    .loading-fill {
+      position: absolute;
+
+      left: 0;
+      bottom: 0;
+
+      width: 100%;
+      height: 0%;
+
+      background: #ff5a24;
+
+      border-radius: 6px;
+
+      transition: height 0.1s linear;
+    }
+
+    /* LOADING TEXT */
+
+    .loading-text {
+      position: absolute;
+
+      left: 25%;
+      top: 50%;
+
+      transform:
+        translate(-50%, -50%)
+        rotate(90deg);
+
+      color: white;
+
+      font-size: 27px;
+      font-weight: 600;
+
+      white-space: nowrap;
+
+      z-index: 5;
+    }
+
+    /* Make the loading screen work nicely on smaller phones */
+
+    @media (max-width: 600px) {
+
+      .loading-bar {
+        left: 31%;
+        width: 25px;
+        height: 58vh;
+      }
+
+      .loading-text {
+        left: 24%;
+        font-size: 20px;
+      }
+
+      .loading-logo {
+        width: 55vw;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       STARTUP
+  ========================= -->
+
+  <div id="startup">
+    <img src="Recroomlogo.png" alt="Rec Room">
+  </div>
+
+
+  <!-- =========================
+       APP
+  ========================= -->
+
+  <div id="app">
+
+    <!-- HOME -->
+
+    <div id="homeScreen" class="screen active">
+
+      <div class="topbar">
+
+        <img
+          src="Recroomwidelogo.png"
+          class="top-logo"
+          alt="Rec Room"
+        >
+
+        <div class="search-icon"></div>
+
+      </div>
+
+
+      <div class="content">
+
+        <section class="section">
+
+          <h1 class="section-title">
+            Continue Playing
+          </h1>
+
+          <div class="cards">
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                DormRoom
+              </div>
+
+              <div class="stats">
+                <span>♥ 1</span>
+                <span>♟ 324</span>
+              </div>
+            </div>
+
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                RecCenter
+              </div>
+
+              <div class="stats">
+                <span>♥ 584K</span>
+                <span>♟ 696.6M</span>
+              </div>
+            </div>
+
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                Furry-...
+              </div>
+
+              <div class="stats">
+                <span>♥ 10.9K</span>
+                <span>♟ 467K</span>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <section class="section">
+
+          <h1 class="section-title">
+            Rec Room Originals
+          </h1>
+
+          <div class="cards">
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                GoldenTrophy
+              </div>
+
+              <div class="stats">
+                <span>♥ 830K</span>
+                <span>♟ 125.9M</span>
+              </div>
+            </div>
+
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                3DCharades
+              </div>
+
+              <div class="stats">
+                <span>♥ 120K</span>
+                <span>♟ 17.7M</span>
+              </div>
+            </div>
+
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                Dodgeball
+              </div>
+
+              <div class="stats">
+                <span>♥ 477K</span>
+                <span>♟ 88.8M</span>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <section class="section">
+
+          <h1 class="section-title">
+            Hot List
+          </h1>
+
+          <div class="cards">
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                HowHighCan...
+              </div>
+
+              <div class="stats">
+                <span>♥ 10.5K</span>
+                <span>♟ 145K</span>
+              </div>
+            </div>
+
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                InsanePVPBattle
+              </div>
+
+              <div class="stats">
+                <span>♥ 194K</span>
+                <span>♟ 5.5M</span>
+              </div>
+            </div>
+
+
+            <div class="card">
+              <img
+                class="card-image"
+                src="https://placehold.co/490x344"
+                alt=""
+              >
+
+              <div class="card-title">
+                PoppyPlaytime
+              </div>
+
+              <div class="stats">
+                <span>♥ 586K</span>
+                <span>♟ 4.3M</span>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+
+    </div>
+
+
+    <!-- ROOMS -->
+
+    <div id="roomsScreen" class="screen">
+
+      <div class="topbar">
+
+        <img
+          src="Recroomwidelogo.png"
+          class="top-logo"
+          alt="Rec Room"
+        >
+
+      </div>
+
+      <div class="placeholder-screen">
+
+        <h1>Rooms</h1>
+
+        <p>
+          Rooms will appear here.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- PLAY -->
+
+    <div id="playScreen" class="screen">
+
+      <div class="topbar">
+
+        <img
+          src="Recroomwidelogo.png"
+          class="top-logo"
+          alt="Rec Room"
+        >
+
+      </div>
+
+      <div class="placeholder-screen">
+
+        <h1>Play</h1>
+
+        <p>
+          Choose an activity to play.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- MESSAGES -->
+
+    <div id="messagesScreen" class="screen">
+
+      <div class="messages-header">
+        Messages
+      </div>
+
+      <div class="message-search">
+
+        <div class="small-search"></div>
+
+        Search
+
+      </div>
+
+
+      <div class="message-list">
+
+        <div
+          class="message-person"
+          onclick="openCoach()"
+        >
+
+          <div style="position:relative;">
+
+            <img
+              src="Profileimageplaceholder.png"
+              class="message-avatar"
+              alt="Coach"
+            >
+
+            <div class="online-dot"></div>
+
+          </div>
+
+
+          <div class="message-info">
+
+            <div class="message-name">
+              Coach
+            </div>
+
+            <div
+              class="message-preview"
+              id="coachPreview"
+            >
+              Hey! Welcome to Rec Room!
+            </div>
+
+          </div>
+
+
+          <div class="message-time">
+            a moment ago
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- COACH DM -->
+
+    <div id="coachScreen" class="screen">
+
+      <div class="dm-header">
+
+        <div
+          class="back-button"
+          onclick="showScreen('messagesScreen')"
+        >
+          ‹
+        </div>
+
+        Coach
+
+      </div>
+
+
+      <div
+        class="dm-messages"
+        id="dmMessages"
+      >
+
+        <div class="dm-row">
+
+          <img
+            src="Profileimageplaceholder.png"
+            class="dm-avatar"
+            alt="Coach"
+          >
+
+          <div class="bubble">
+
+            Hey! Welcome to Rec Room!
+
+            <span class="bubble-time">
+              a moment ago
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="dm-row">
+
+          <img
+            src="Profileimageplaceholder.png"
+            class="dm-avatar"
+            alt="Coach"
+          >
+
+          <div class="bubble">
+
+            Have you checked out any cool rooms lately?
+
+            <span class="bubble-time">
+              a moment ago
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="dm-input-area">
+
+        <img
+          src="Profileimageplaceholder.png"
+          class="dm-input-avatar"
+          alt="You"
+        >
+
+        <input
+          id="messageInput"
+          type="text"
+          placeholder="Message"
+          autocomplete="off"
+        >
+
+        <button
+          id="sendButton"
+          onclick="sendMessage()"
+        >
+          Send
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- PROFILE -->
+
+    <div id="profileScreen" class="screen">
+
+      <div class="topbar">
+
+        <img
+          src="Recroomwidelogo.png"
+          class="top-logo"
+          alt="Rec Room"
+        >
+
+      </div>
+
+
+      <div class="placeholder-screen">
+
+        <img
+          src="Profileimageplaceholder.png"
+          class="profile-big"
+          alt="Profile"
+        >
+
+        <h1>
+          Profile
+        </h1>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         BOTTOM NAV
+    ========================= -->
+
+    <div class="bottom-nav">
+
+      <div
+        class="nav-item"
+        onclick="showScreen('homeScreen')"
+      >
+        <div class="nav-icon">
+          ⌂
+        </div>
+      </div>
+
+
+      <div
+        class="nav-item"
+        onclick="showScreen('roomsScreen')"
+      >
+        <div class="nav-icon">
+          ▧
+        </div>
+      </div>
+
+
+      <div
+        class="play-button"
+        onclick="startRoomLoading()"
+      >
+
+        <div class="play-triangle"></div>
+
+        <div class="play-text">
+          Play
+        </div>
+
+      </div>
+
+
+      <div
+        class="nav-item"
+        onclick="showScreen('messagesScreen')"
+      >
+        <div class="nav-icon">
+          ▰
+        </div>
+      </div>
+
+
+      <div
+        class="nav-item"
+        onclick="showScreen('profileScreen')"
+      >
+
+        <img
+          src="Profileimageplaceholder.png"
+          class="profile-image"
+          alt="Profile"
+        >
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==================================================
+       FULL SCREEN ROOM LOADING OVERLAY
+  ================================================== -->
+
+  <div id="roomLoading">
+
+    <img
+      src="Recroomlogo.png"
+      class="loading-logo"
+      alt="Rec Room"
+    >
+
+
+    <div class="loading-bar">
+
+      <div
+        id="loadingFill"
+        class="loading-fill"
+      ></div>
+
+    </div>
+
+
+    <div class="loading-text">
+      loading Room
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================= -->
+
+  <script>
+
+    /* =========================
+       STARTUP
+    ========================= */
+
+    setTimeout(() => {
+
+      const startup =
+        document.getElementById("startup");
+
+      const app =
+        document.getElementById("app");
+
+      startup.style.opacity = "0";
+
+      setTimeout(() => {
+
+        startup.style.display = "none";
+        app.style.display = "block";
+
+      }, 500);
+
+    }, 2500);
+
+
+    /* =========================
+       SCREEN SWITCHING
+    ========================= */
+
+    function showScreen(screenID) {
+
+      const screens =
+        document.querySelectorAll(".screen");
+
+      screens.forEach(screen => {
+
+        screen.classList.remove("active");
+
+      });
+
+      const selected =
+        document.getElementById(screenID);
+
+      if (selected) {
+        selected.classList.add("active");
+      }
+
+      window.scrollTo(0, 0);
+
+    }
+
+
+    /* =========================
+       ROOM LOADING
+    ========================= */
+
+    let loadingTimer = null;
+
+
+    function startRoomLoading() {
+
+      const loadingScreen =
+        document.getElementById("roomLoading");
+
+      const loadingFill =
+        document.getElementById("loadingFill");
+
+
+      /* Show the full-screen loader */
+
+      loadingScreen.classList.add("show");
+
+
+      /* Reset bar to completely empty */
+
+      loadingFill.style.transition = "none";
+      loadingFill.style.height = "0%";
+
+
+      /* Force browser to register reset */
+
+      void loadingFill.offsetHeight;
+
+
+      /* Start slow fill */
+
+      loadingFill.style.transition =
+        "height 4s linear";
+
+      loadingFill.style.height = "100%";
+
+
+      /* Wait until loading finishes */
+
+      clearTimeout(loadingTimer);
+
+      loadingTimer = setTimeout(() => {
+
+        loadingScreen.classList.remove("show");
+
+        loadingFill.style.height = "0%";
+
+        showScreen("playScreen");
+
+      }, 4200);
+
+    }
+    
+    
+
+
+    /* =========================
+       OPEN COACH
+    ========================= */
+
+    function openCoach() {
+
+      showScreen("coachScreen");
+
+    }
+
+
+    /* =========================
+       SEND MESSAGE
+    ========================= */
+
+    function sendMessage() {
+
+      const input =
+        document.getElementById("messageInput");
+
+      const text =
+        input.value.trim();
+
+      if (text === "") {
+        return;
+      }
+
+
+      const messages =
+        document.getElementById("dmMessages");
+
+
+      const row =
+        document.createElement("div");
+
+      row.className =
+        "dm-row me";
+
+
+      const bubble =
+        document.createElement("div");
+
+      bubble.className =
+        "bubble";
+
+
+      bubble.innerHTML =
+        escapeHTML(text) +
+        '<span class="bubble-time">a moment ago</span>';
+
+
+      row.appendChild(bubble);
+
+      messages.appendChild(row);
+
+
+      input.value = "";
+
+
+      messages.scrollTop =
+        messages.scrollHeight;
+
+
+      document
+        .getElementById("coachPreview")
+        .textContent = text;
+
+    }
+
+
+    /* =========================
+       ENTER TO SEND
+    ========================= */
+
+    document
+      .getElementById("messageInput")
+      .addEventListener(
+        "keydown",
+        function(event) {
+
+          if (event.key === "Enter") {
+
+            sendMessage();
+
+          }
+
+        }
+      );
+
+
+    /* =========================
+       SAFE TEXT
+    ========================= */
+
+    function escapeHTML(text) {
+
+      const div =
+        document.createElement("div");
+
+      div.textContent = text;
+
+      return div.innerHTML;
+
+    }
+
+  </script>
+
+</body>
+</html>
